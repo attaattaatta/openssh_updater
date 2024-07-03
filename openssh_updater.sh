@@ -16,7 +16,7 @@ YCV="\033[01;33m"
 NCV="\033[0m"
 
 # show script version
-self_current_version="1.0.8"
+self_current_version="1.0.9"
 printf "\n${YCV}Hello${NCV}, my version is ${YCV}$self_current_version\n${NCV}"
 
 # check privileges
@@ -206,6 +206,8 @@ then
 	then
 		OS_VER=alma9
 		OS_REL=el9
+
+		yum install -y initscripts
 
 	elif echo $REL | grep -i stream | grep -i 9
 	then
