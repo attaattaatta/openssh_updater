@@ -73,11 +73,14 @@ printf "\nRPMs were not found at https://github.com/attaattaatta/openssh_updater
 printf "\nTrying to build RPMs from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) \n"
 
 {
-if 2>&1 yum groupinstall -y "Development Tools" | grep -q "Could not resolve host: mirrorlist.centos.org"
+
+{
+if 2>&1 yum groupinstall "Development Tools" | grep -q "Could not resolve host: mirrorlist.centos.org"
 then
 	sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
 	sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 fi
+} > /dev/null 2>&1
 
 # install rhel dependencies
 yum -y groupinstall 'Development Tools'
