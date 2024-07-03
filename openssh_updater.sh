@@ -16,7 +16,7 @@ YCV="\033[01;33m"
 NCV="\033[0m"
 
 # show script version
-self_current_version="1.0.0"
+self_current_version="1.0.1"
 printf "\n${YCV}Hello${NCV}, my version is ${YCV}$self_current_version\n${NCV}"
 
 # check privileges
@@ -69,8 +69,8 @@ echo
 
 openssh_build_rhel_rpms() {
 
-printf "\n${GCV}RPMs were not found at https://github.com/attaattaatta/openssh_updater/ ${NCV}\n"
-printf "\n${GCV}Trying to build RPMs from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) ${NCV}\n"
+printf "\nRPMs were not found at https://github.com/attaattaatta/openssh_updater/ \n"
+printf "\n$Trying to build RPMs from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) \n"
 
 {
 if 2>&1 yum groupinstall -y "Development Tools" | grep -q "Could not resolve host: mirrorlist.centos.org"
@@ -81,7 +81,7 @@ fi
 
 # install rhel dependencies
 yum -y groupinstall 'Development Tools'
-for package in imake rpm-build pam-devel krb5-devel zlib-devel libXt-devel libX11-devel gtk2-devel perl perl-IPC-Cmd
+for package in initscripts imake rpm-build pam-devel krb5-devel zlib-devel libXt-devel libX11-devel gtk2-devel perl perl-IPC-Cmd
 do
 yum -y install $package
 done
@@ -199,6 +199,10 @@ then
 	then
 		OS_VER=alma8
 		OS_REL=el8
+	elif echo $REL | grep -i steam | grep -i 9 > /dev/null
+	then
+		OS_VER=centos9
+		OS_REL=el9
 	elif echo $REL | grep -i centos | grep -i 6 > /dev/null
 	then
 		OS_VER=centos6
