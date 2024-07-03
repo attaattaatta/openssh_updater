@@ -16,7 +16,7 @@ YCV="\033[01;33m"
 NCV="\033[0m"
 
 # show script version
-self_current_version="1.0.2"
+self_current_version="1.0.3"
 printf "\n${YCV}Hello${NCV}, my version is ${YCV}$self_current_version\n${NCV}"
 
 # check privileges
@@ -73,14 +73,6 @@ printf "\nRPMs were not found at https://github.com/attaattaatta/openssh_updater
 printf "\nTrying to build RPMs from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) \n"
 
 {
-
-{
-if 2>&1 yum groupinstall "Development Tools" | grep -q "Could not resolve host: mirrorlist.centos.org"
-then
-	sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-	sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-fi
-} > /dev/null 2>&1
 
 # install rhel dependencies
 yum -y groupinstall 'Development Tools'
@@ -199,6 +191,9 @@ then
 	then
 		OS_VER=centos7
 		OS_REL=el7
+		sed -i "s/^mirrorlist=/#mirrorlist=/g" /etc/yum.repos.d/CentOS-*; sed -i "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
+		yum --enablerepo=updates clean metadata
+
 	elif echo $REL | grep -i alma | grep -i 8 
 	then
 		OS_VER=alma8
