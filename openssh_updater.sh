@@ -16,7 +16,7 @@ YCV="\033[01;33m"
 NCV="\033[0m"
 
 # show script version
-self_current_version="1.0.7"
+self_current_version="1.0.8"
 printf "\n${YCV}Hello${NCV}, my version is ${YCV}$self_current_version\n${NCV}"
 
 # check privileges
@@ -69,8 +69,8 @@ echo
 
 openssh_build_rhel_rpms() {
 
-printf "\nRPMs for this system were not found at https://github.com/attaattaatta/openssh_updater/tree/main/RPM \n"
-printf "\nTrying to build RPMs from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) \n"
+printf "\n OpenSSH ${GCV}$latest_openssh_version${NCV} RPMs for this system were not found at https://github.com/attaattaatta/openssh_updater/tree/main/RPM \n"
+printf "\nTrying to build it from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) \n"
 
 {
 
@@ -188,7 +188,7 @@ then
 	printf "\nLooks like this is some ${GCV}RHEL (or derivative) OS${NCV}\n"
 
 {
-	if echo $REL | grep -i centos | grep -i 7 
+	if echo $REL | grep -i centos | grep -i 7
 	then
 		OS_VER=centos7
 		OS_REL=el7
@@ -197,24 +197,29 @@ then
 		sed -i "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
 		yum --enablerepo=updates clean metadata
 
-	elif echo $REL | grep -i alma | grep -i 8 
+	elif echo $REL | grep -i alma | grep -i 8
 	then
 		OS_VER=alma8
 		OS_REL=el8
 
-	elif echo $REL | grep -i stream | grep -i 9 
+	elif echo $REL | grep -i alma | grep -i 9
+	then
+		OS_VER=alma9
+		OS_REL=el9
+
+	elif echo $REL | grep -i stream | grep -i 9
 	then
 		OS_VER=centos9
 		OS_REL=el9
 
 		yum install -y initscripts
 
-	elif echo $REL | grep -i stream | grep -i 8 
+	elif echo $REL | grep -i stream | grep -i 8
 	then
 		OS_VER=centos8
 		OS_REL=el8
 
-	elif echo $REL | grep -i centos | grep -i 6 
+	elif echo $REL | grep -i centos | grep -i 6
 	then
 		OS_VER=centos6
 		OS_REL=el6
