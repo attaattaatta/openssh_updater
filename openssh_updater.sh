@@ -16,7 +16,7 @@ YCV="\033[01;33m"
 NCV="\033[0m"
 
 # show script version
-self_current_version="1.0.6"
+self_current_version="1.0.7"
 printf "\n${YCV}Hello${NCV}, my version is ${YCV}$self_current_version\n${NCV}"
 
 # check privileges
@@ -231,6 +231,8 @@ then
 
 	if ! [[ -z $OS_VER ]]
 	then
+		mkdir -p /tmp/RPM &> /dev/null
+
 		printf "\nTrying to find builded RPMs for $OS_VER at https://github.com/attaattaatta/openssh_updater/tree/main/RPM \n"
 		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
 		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
