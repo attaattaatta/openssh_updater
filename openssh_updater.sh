@@ -70,7 +70,7 @@ echo
 openssh_build_rhel_rpms() {
 
 printf "\nRPMs were not found at https://github.com/attaattaatta/openssh_updater/ \n"
-printf "\n$Trying to build RPMs from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) \n"
+printf "\nTrying to build RPMs from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) \n"
 
 {
 if 2>&1 yum groupinstall -y "Development Tools" | grep -q "Could not resolve host: mirrorlist.centos.org"
