@@ -194,29 +194,32 @@ then
 
 	printf "\nLooks like this is some ${GCV}RHEL (or derivative) OS${NCV}\n"
 
-	if echo $REL | grep -i centos | grep -i 7 > /dev/null
+{
+	if echo $REL | grep -i centos | grep -i 7 
 	then
 		OS_VER=centos7
 		OS_REL=el7
-	elif echo $REL | grep -i alma | grep -i 8 > /dev/null
+	elif echo $REL | grep -i alma | grep -i 8 
 	then
 		OS_VER=alma8
 		OS_REL=el8
-	elif echo $REL | grep -i stream | grep -i 9 > /dev/null
+	elif echo $REL | grep -i stream | grep -i 9 
 	then
 		OS_VER=centos9
 		OS_REL=el9
-	elif echo $REL | grep -i centos | grep -i 6 > /dev/null
+		yum install -y initscripts
+	elif echo $REL | grep -i centos | grep -i 6 
 	then
 		OS_VER=centos6
 		OS_REL=el6
-	elif echo $REL | grep -i centos | grep -i 5 > /dev/null
+	elif echo $REL | grep -i centos | grep -i 5
 	then
 		OS_VER=centos5
 		OS_REL=el5
-		yum install -y gcc44
+		yum install -y gcc44 
 	fi
 
+} >> $OPENSSH_BUILD_LOG_FILE 2>&1
 
 	if ! [[ -z $OS_VER ]]
 	then
