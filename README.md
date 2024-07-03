@@ -1,7 +1,7 @@
-# openssh_updater
+п»ї# openssh_updater
 Only RHEL support by now
 
-## Запуск:
+## Р—Р°РїСѓСЃРє:
 ```
 bash <(wget --no-check-certificate -q -o /dev/null -O- http://bit.ly/3zpTSLU)
 ```
