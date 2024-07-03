@@ -16,7 +16,7 @@ YCV="\033[01;33m"
 NCV="\033[0m"
 
 # show script version
-self_current_version="1.0.5"
+self_current_version="1.0.6"
 printf "\n${YCV}Hello${NCV}, my version is ${YCV}$self_current_version\n${NCV}"
 
 # check privileges
@@ -69,7 +69,7 @@ echo
 
 openssh_build_rhel_rpms() {
 
-printf "\nRPMs for this system were not found at https://github.com/attaattaatta/openssh_updater/ \n"
+printf "\nRPMs for this system were not found at https://github.com/attaattaatta/openssh_updater/tree/main/RPM \n"
 printf "\nTrying to build RPMs from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) \n"
 
 {
@@ -231,16 +231,16 @@ then
 
 	if ! [[ -z $OS_VER ]]
 	then
-		printf "\nTrying to find builded RPMs for $OS_VER at https://github.com/attaattaatta/openssh_updater/ \n"
-		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
-		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
-		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
+		printf "\nTrying to find builded RPMs for $OS_VER at https://github.com/attaattaatta/openssh_updater/tree/main/RPM \n"
+		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
+		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
+		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
 
-		if [[ -f "/tmp/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm" ]] && [[ -f "/tmp/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm" ]] && [[ -f "/tmp/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm" ]]
+		if [[ -f "/tmp/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm" ]] && [[ -f "/tmp/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm" ]] && [[ -f "/tmp/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm" ]]
 		then
-			OPENSSH_FILE_SIZE=$(ls -l "/tmp/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm" | awk '{print $5}' 2> /dev/null)
-			OPENSSH_CLIENTS_FILE_SIZE=$(ls -l "/tmp/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm" | awk '{print $5}' 2> /dev/null)
-			OPENSSH_SERVER_FILE_SIZE=$(ls -l "/tmp/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm" | awk '{print $5}' 2> /dev/null)
+			OPENSSH_FILE_SIZE=$(ls -l "/tmp/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm" | awk '{print $5}' 2> /dev/null)
+			OPENSSH_CLIENTS_FILE_SIZE=$(ls -l "/tmp/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm" | awk '{print $5}' 2> /dev/null)
+			OPENSSH_SERVER_FILE_SIZE=$(ls -l "/tmp/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm" | awk '{print $5}' 2> /dev/null)
 
 			if [[ $OPENSSH_FILE_SIZE -gt 30 ]] && [[ $OPENSSH_CLIENTS_FILE_SIZE -gt 30 ]] && [[ $OPENSSH_SERVER_FILE_SIZE -gt 30 ]]
 			then
@@ -250,9 +250,9 @@ then
 			then
 				{
 				if ! which curl; then yum -y install curl; fi
-				curl "https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm
-				curl "https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm
-				curl "https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm
+				curl "https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm
+				curl "https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm
+				curl "https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm
 				} >> $OPENSSH_BUILD_LOG_FILE 2>&1
 
 				openssh_rpm_install
