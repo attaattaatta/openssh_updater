@@ -16,7 +16,7 @@ YCV="\033[01;33m"
 NCV="\033[0m"
 
 # show script version
-self_current_version="1.0.3"
+self_current_version="1.0.4"
 printf "\n${YCV}Hello${NCV}, my version is ${YCV}$self_current_version\n${NCV}"
 
 # check privileges
@@ -69,7 +69,7 @@ echo
 
 openssh_build_rhel_rpms() {
 
-printf "\nRPMs were not found at https://github.com/attaattaatta/openssh_updater/ \n"
+printf "\nRPMs for this system were not found at https://github.com/attaattaatta/openssh_updater/ \n"
 printf "\nTrying to build RPMs from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) \n"
 
 {
@@ -90,6 +90,7 @@ cd $INST_SSHD_DIR
 
 if ! which git; then yum -y install git; fi
 
+git config --global http.postBuffer 524288000
 git clone https://github.com/boypt/openssh-rpms $INST_SSHD_DIR
 
 sed -i "s@OPENSSHSRC=.*@OPENSSHSRC=$latest_openssh_targz_name@gi" $INST_SSHD_DIR/version.env
@@ -123,7 +124,7 @@ printf "\n${GCV}Restarting OpenSSH server${NCV}\n";
 systemctl restart sshd || service sshd restart
 } >> $OPENSSH_BUILD_LOG_FILE 2>&1
 
-systemctl status sshd || service sshd status
+systemctl status sshd --no-pager || service sshd status
 }
 
 openssh_rpm_install() {
@@ -136,7 +137,7 @@ systemctl restart sshd || service sshd restart
 } >> $OPENSSH_BUILD_LOG_FILE 2>&1
 
 echo
-systemctl status sshd || service sshd status
+systemctl status sshd --no-pager || service sshd status
 echo
 
 }
@@ -191,26 +192,33 @@ then
 	then
 		OS_VER=centos7
 		OS_REL=el7
-		sed -i "s/^mirrorlist=/#mirrorlist=/g" /etc/yum.repos.d/CentOS-*; sed -i "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
+
+		sed -i "s/^mirrorlist=/#mirrorlist=/g" /etc/yum.repos.d/CentOS-*
+		sed -i "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-*
 		yum --enablerepo=updates clean metadata
 
 	elif echo $REL | grep -i alma | grep -i 8 
 	then
 		OS_VER=alma8
 		OS_REL=el8
+
 	elif echo $REL | grep -i stream | grep -i 9 
 	then
 		OS_VER=centos9
 		OS_REL=el9
+
 		yum install -y initscripts
+
 	elif echo $REL | grep -i centos | grep -i 6 
 	then
 		OS_VER=centos6
 		OS_REL=el6
+
 	elif echo $REL | grep -i centos | grep -i 5
 	then
 		OS_VER=centos5
 		OS_REL=el5
+
 		yum install -y gcc44 
 	fi
 
@@ -218,7 +226,7 @@ then
 
 	if ! [[ -z $OS_VER ]]
 	then
-		printf "\nTrying to find builded RPMs for $OS_VER\n"
+		printf "\nTrying to find builded RPMs for $OS_VER at https://github.com/attaattaatta/openssh_updater/ \n"
 		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
 		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
 		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
