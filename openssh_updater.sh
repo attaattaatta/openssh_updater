@@ -130,7 +130,7 @@ systemctl status sshd --no-pager || service sshd status
 openssh_rpm_install() {
 {
 printf "\n${GCV}Installing RPMs${NCV}\n"
-find /tmp/ ! -name '*debug*' ! -path '*SRPMS*' -name '*.rpm' | xargs yum --disablerepo=* localinstall -y
+find /tmp/RPM/ ! -name '*debug*' ! -path '*SRPMS*' -name '*.rpm' | xargs yum --disablerepo=* localinstall -y
 chmod -v 600 /etc/ssh/ssh_host_*_key
 printf "\n${GCV}Restarting OpenSSH server${NCV}\n";
 systemctl restart sshd || service sshd restart
