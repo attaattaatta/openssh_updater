@@ -3,7 +3,6 @@
 #set -x -v
 # exit 1 if any error
 #set -e -o verbose
-#set -e
 #pipefail | verbose
 
 # fixing paths
@@ -16,7 +15,7 @@ YCV="\033[01;33m"
 NCV="\033[0m"
 
 # show script version
-self_current_version="1.0.9"
+self_current_version="1.0.10"
 printf "\n${YCV}Hello${NCV}, my version is ${YCV}$self_current_version\n${NCV}"
 
 # check privileges
@@ -26,9 +25,45 @@ then
 	exit 1
 fi
 
+# validate arguments
+if [[ ! $# -eq 0 ]]
+then
+	printf "\n\n${LRV}ERROR - No arguments allowed${NCV}\n"
+	exit 1
+fi
+
+EXIT_STATUS=0
+
+check_exit_code() {
+if test $EXIT_STATUS != 0
+then
+	printf "\n\n${LRV}ERROR - last command not succeeded${NCV}\n"
+	exit 1
+fi
+
+}
+
+# check free space
+printf "\n${GCV}Checking free space${NCV}"
+current_free_space=$(df -Pm --sync / | awk '{print $4}' | tail -n 1)
+space_need_megabytes="2000"
+if [[ $current_free_space -le $space_need_megabytes ]]
+then
+        printf " - ${LRV}FAIL${NCV}";
+	EXIT_STATUS=1
+        check_exit_code
+else
+	printf " - ${GCV}OK${NCV}\n"
+fi
+
+OPENSSH_MIRROR_HOST="mirror.yandex.ru"
+OPENSSH_MIRROR_URL="https://$OPENSSH_MIRROR_HOST/pub/OpenBSD/OpenSSH/portable/"
+OPENSSH_UPDATER_DIRECT_URL="https://raw.githubusercontent.com/attaattaatta/openssh_updater"
+
 OPENSSH_BUILD_LOG_FILE="/tmp/openssh_build.$RANDOM.log"
 SRC_DIR="/usr/local/src"
 INST_SSHD_DIR="$SRC_DIR"/openssh
+
 
 # check OS
 shopt -s nocasematch
@@ -36,6 +71,8 @@ REL=$(cat /etc/*release* | head -n 1)
 case "$REL" in
         *cent*) distr="rhel";;
 	*alma*) distr="rhel";;
+	*rocky*) distr="rhel";;
+	*oracle*) distr="rhel";;
         *cloud*) distr="rhel";;
         *rhel*) distr="rhel";;
         *debian*) distr="debian";;
@@ -45,10 +82,9 @@ esac;
 shopt -u nocasematch
 
 # check OpenSSH versions
+latest_openssh_version=$(printf "GET $OPENSSH_MIRROR_URL HTTP/1.1\nHost:$OPENSSH_MIRROR_HOST\nConnection:Close\n\n" | timeout 5 openssl 2>/dev/null s_client -crlf -connect $OPENSSH_MIRROR_HOST:443 -quiet | sed '1,/^\s$/d' | grep -E -o "openssh-[0-9.]+\w+" | tail -n 1 | sed 's@openssh-@@gi')
 
-latest_openssh_version=$(printf "GET https://mirror.yandex.ru/pub/OpenBSD/OpenSSH/portable/ HTTP/1.1\nHost:mirror.yandex.ru\nConnection:Close\n\n" | timeout 5 openssl 2>/dev/null s_client -crlf -connect mirror.yandex.ru:443 -quiet | sed '1,/^\s$/d' | egrep -o "openssh\-[0-9.]+\w+" | tail -n 1 | sed 's@openssh-@@gi')
-
-latest_openssh_targz_name=$(printf "GET https://mirror.yandex.ru/pub/OpenBSD/OpenSSH/portable/ HTTP/1.1\nHost:mirror.yandex.ru\nConnection:Close\n\n" | timeout 5 openssl 2>/dev/null s_client -crlf -connect mirror.yandex.ru:443 -quiet | sed '1,/^\s$/d' | egrep -o "openssh\-[0-9.]+\w+.tar.gz" | tail -n 1)
+latest_openssh_targz_name=$(printf "GET $OPENSSH_MIRROR_URL HTTP/1.1\nHost:$OPENSSH_MIRROR_HOST\nConnection:Close\n\n" | timeout 5 openssl 2>/dev/null s_client -crlf -connect $OPENSSH_MIRROR_HOST:443 -quiet | sed '1,/^\s$/d' | grep -E -o "openssh-[0-9.]+\w+.tar.gz" | tail -n 1)
 
 current_openssh_version=$(2>&1 sshd -V | grep -o -P '\d+\.?\d+\w?\d?+' | head -n 1)
 
@@ -57,7 +93,7 @@ printf "\nLatest OpenSSH server version is ${GCV}$latest_openssh_version${NCV}\n
 printf "Current OpenSSH server version is ${LRV}$current_openssh_version${NCV}\n"
 
 # checking vars are set
-if [[ -z $GCV || -z $LRV || -z $YCV || -z $NCV || -z $current_openssh_version || -z $latest_openssh_version || -z $REL || -z $OPENSSH_BUILD_LOG_FILE ]]
+if [[ -z $GCV || -z $LRV || -z $YCV || -z $NCV || -z $current_openssh_version || -z $latest_openssh_version || -z $REL || -z $SRC_DIR || -z $INST_SSHD_DIR || -z $OPENSSH_MIRROR_HOST || -z $OPENSSH_MIRROR_URL || -z $OPENSSH_BUILD_LOG_FILE ]]
 then
 printf "\n${LRV}Some variables or arrays are not defined ${NCV}"
 exit 1
@@ -69,14 +105,14 @@ echo
 
 openssh_build_rhel_rpms() {
 
-printf "\n OpenSSH ${GCV}$latest_openssh_version${NCV} RPMs for this system were not found at https://github.com/attaattaatta/openssh_updater/tree/main/RPM \n"
+printf "\nOpenSSH ${GCV}$latest_openssh_version${NCV} RPMs for this system were not found at https://github.com/attaattaatta/openssh_updater/tree/main/RPM \n"
 printf "\nTrying to build it from sources, please wait ( logfile - $OPENSSH_BUILD_LOG_FILE ) \n"
 
 {
 
 # install rhel dependencies
 yum -y groupinstall 'Development Tools'
-for package in initscripts imake rpm-build pam-devel krb5-devel zlib-devel libXt-devel libX11-devel gtk2-devel perl perl-IPC-Cmd
+for package in gcc glibc-devel initscripts imake rpm-build pam-devel krb5-devel zlib-devel libXt-devel libX11-devel gtk2-devel perl perl-IPC-Cmd
 do
 yum -y install $package
 done
@@ -241,9 +277,9 @@ then
 		mkdir -p /tmp/RPM &> /dev/null
 
 		printf "\nTrying to find builded RPMs for $OS_VER at https://github.com/attaattaatta/openssh_updater/tree/main/RPM \n"
-		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
-		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
-		printf "GET https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
+		printf "GET $OPENSSH_UPDATER_DIRECT_URL/main/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
+		printf "GET $OPENSSH_UPDATER_DIRECT_URL/main/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
+		printf "GET $OPENSSH_UPDATER_DIRECT_URL/main/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm HTTP/1.1\nHost:raw.githubusercontent.com\nConnection:Close\n\n" | timeout 10 openssl 2>/dev/null s_client -crlf -connect raw.githubusercontent.com:443 -quiet | sed '1,/^\s$/d' > "/tmp/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm"
 
 		if [[ -f "/tmp/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm" ]] && [[ -f "/tmp/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm" ]] && [[ -f "/tmp/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm" ]]
 		then
@@ -259,9 +295,9 @@ then
 			then
 				{
 				if ! which curl; then yum -y install curl; fi
-				curl "https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm
-				curl "https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm
-				curl "https://raw.githubusercontent.com/attaattaatta/openssh_updater/main/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm
+				curl "$OPENSSH_UPDATER_DIRECT_URL/main/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/RPM/$OS_VER-openssh-$latest_openssh_version-1.$OS_REL.x86_64.rpm
+				curl "$OPENSSH_UPDATER_DIRECT_URL/main/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/RPM/$OS_VER-openssh-clients-$latest_openssh_version-1.$OS_REL.x86_64.rpm
+				curl "$OPENSSH_UPDATER_DIRECT_URL/main/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm" -o /tmp/RPM/$OS_VER-openssh-server-$latest_openssh_version-1.$OS_REL.x86_64.rpm
 				} >> $OPENSSH_BUILD_LOG_FILE 2>&1
 
 				openssh_rpm_install
